@@ -49,7 +49,7 @@ impl GitRepo {
 
         // Check args for path changes
         let worktree = WorktreePathBuf::from(match args.subcommand() {
-            ("init", Some(sub_m)) => sub_m.value_of("DIRECTORY").unwrap(),
+            ("init", Some(sub_m)) => sub_m.value_of("directory").unwrap(),
             _ => &default,
         });
 
