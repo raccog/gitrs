@@ -10,6 +10,7 @@ use crate::core::{self, GitRepo, GitResult};
 pub fn init(repo: &GitRepo) -> GitResult<()> {
     let gitpath = repo.gitpath();
     // create directories
+    core::create_dir_all_if_new(repo.worktree())?;
     core::create_dir_if_new(&gitpath)?;
     core::create_dir_if_new(&gitpath.join("hooks"))?;
     core::create_dir_if_new(&gitpath.join("info"))?;
@@ -24,16 +25,12 @@ pub fn init(repo: &GitRepo) -> GitResult<()> {
         b"Unnamed repository; edit this file 'description' to name the repository.\n",
     )?;
     let head_path = gitpath.join("HEAD");
+    let gitpath_str = gitpath.canonicalize().unwrap();
+    let gitpath_str = gitpath_str.to_str().unwrap();
     if head_path.is_file() {
-        println!(
-            "Reinitialized existing Git repository in {}",
-            repo.worktree().to_str().unwrap()
-        );
+        println!("Reinitialized existing Git repository in {}", gitpath_str);
     } else {
-        println!(
-            "Initialized empty Git repository in {}",
-            repo.worktree().to_str().unwrap()
-        );
+        println!("Initialized empty Git repository in {}", gitpath_str);
     }
     core::write_if_new(&head_path, b"ref: refs/heads/master\n")?;
     core::write_if_new(&gitpath.join("config"), config::initial_config().as_bytes())?;

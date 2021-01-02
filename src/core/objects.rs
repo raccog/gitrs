@@ -7,30 +7,15 @@ use sha1::{Digest, Sha1};
 
 use crate::core::{GitError, GitResult};
 
-/// A [Path] to the current worktree directory.
-pub type WorktreePath = Path;
-/// A [PathBuf] to the current worktree directory.
-pub type WorktreePathBuf = PathBuf;
-
-/// A [Path] to the current git directory.
-pub type GitPath = Path;
-/// A [PathBuf] to the current git directory.
-pub type GitPathBuf = PathBuf;
-
-/// A [Path] to an object file.
-pub type ObjectPath = Path;
-/// A [PathBuf] to an object file.
-pub type ObjectPathBuf = PathBuf;
-
 /// A container for all information about a git repository.
 pub struct GitRepo {
-    worktree: WorktreePathBuf,
-    gitpath: GitPathBuf,
+    worktree: PathBuf,
+    gitpath: PathBuf,
 }
 
 impl GitRepo {
     /// Creates a container from existing info about the repository.
-    pub fn new(worktree: WorktreePathBuf, gitpath: GitPathBuf) -> Self {
+    pub fn new(worktree: PathBuf, gitpath: PathBuf) -> Self {
         Self { worktree, gitpath }
     }
     /// Returns the current git repository from command line arguments.
@@ -41,35 +26,46 @@ impl GitRepo {
     /// * Arguments contain a path to an invalid directory
     pub fn from_args(args: &ArgMatches) -> GitResult<GitRepo> {
         // Get GIT_DIR environment variable
-        let default = match env::var("GIT_DIR") {
+        let gitpath = match env::var("GIT_DIR") {
             Ok(dir) => dir,
-            Err(VarError::NotPresent) => ".".to_string(),
+            Err(VarError::NotPresent) => ".git".to_string(),
             Err(VarError::NotUnicode(dir)) => {
                 return Err(GitError::GitDirInvalidUnicode(dir));
             }
         };
 
-        // Check args for path changes
-        let worktree = WorktreePathBuf::from(match args.subcommand() {
-            ("init", Some(sub_m)) => sub_m.value_of("directory").unwrap(),
-            _ => &default,
-        });
+        // TODO: Add -git-dir to command line args and parse directly here
 
-        if !worktree.is_dir() {
-            return Err(GitError::InvalidDirectory(worktree));
-        }
-        let gitpath = worktree.join(".git");
+        // Get worktree from 'git init' args.
+        let worktree = ".";
+        let worktree = if let Some(sub_m) = args.subcommand_matches("init") {
+            if let Some(dir) = sub_m.value_of("directory") {
+                dir
+            } else {
+                worktree
+            }
+        } else {
+            worktree
+        };
+        let worktree = PathBuf::from(worktree);
+
+        let gitpath = PathBuf::from(gitpath);
+        let gitpath = if !gitpath.is_absolute() {
+            worktree.join(gitpath)
+        } else {
+            gitpath
+        };
 
         Ok(GitRepo::new(worktree, gitpath))
     }
 
     /// Returns a [Path] to the git directory of this repository.
-    pub fn gitpath(&self) -> &GitPath {
+    pub fn gitpath(&self) -> &Path {
         self.gitpath.as_path()
     }
 
     /// Returns a [Path] to the worktree directory of this repository.
-    pub fn worktree(&self) -> &WorktreePath {
+    pub fn worktree(&self) -> &Path {
         self.worktree.as_path()
     }
 }

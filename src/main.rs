@@ -16,8 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             SubCommand::with_name("init").arg(
                 Arg::with_name("directory")
                     .help("Sets the directory to initialize a repository in.")
-                    .index(1)
-                    .default_value("."),
+                    .index(1),
             ),
         )
         .subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
