@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 pub type GitResult<T> = Result<T, GitError>;
 
+/// Maps a [io::Result] to a [GitResult] and maps any [io::Error]s into [GitError]s.
 pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitResult<T> {
     match result {
         Ok(ok) => Ok(ok),
@@ -20,7 +21,9 @@ pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitRe
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum GitError {
+    /// An environment variable that was read contains an invalid UTF-8 sequence.
     VarInvalidUnicode { var: OsString, data: OsString },
+    /// Any error coming from [io::Error].
     IOError { error: io::Error, path: PathBuf },
 }
 

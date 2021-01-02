@@ -23,8 +23,8 @@ impl GitRepo {
     ///
     /// # Errors
     ///
-    /// * GIT_DIR environment variable is invalid unicode
-    /// * Arguments contain a path to an invalid directory
+    /// * [GitError::VarInvalidUnicode]: GIT_DIR environment variable is invalid unicode
+    /// * [GitError::IOError]: Arguments contain a path to an invalid directory
     pub fn from_args(matches: &ArgMatches) -> GitResult<GitRepo> {
         // Get GIT_DIR environment variable
         let gitpath = match env::var("GIT_DIR") {
