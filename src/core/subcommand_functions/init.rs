@@ -7,7 +7,7 @@ use crate::core::{self, GitRepo, GitResult};
 ///
 /// This function can return all errors that come from [fs::create_dir], [fs::create_dir_all], and
 /// [fileio::write_if_new].
-pub fn init(repo: &GitRepo) -> GitResult<()> {
+pub fn init(repo: &GitRepo, quiet: bool) -> GitResult<()> {
     let gitpath = repo.gitpath();
     // create directories
     core::create_dir_all_if_new(repo.worktree())?;
@@ -27,10 +27,12 @@ pub fn init(repo: &GitRepo) -> GitResult<()> {
     let head_path = gitpath.join("HEAD");
     let gitpath_str = gitpath.canonicalize().unwrap();
     let gitpath_str = gitpath_str.to_str().unwrap();
-    if head_path.is_file() {
-        println!("Reinitialized existing Git repository in {}", gitpath_str);
-    } else {
-        println!("Initialized empty Git repository in {}", gitpath_str);
+    if !quiet {
+        if head_path.is_file() {
+            println!("Reinitialized existing Git repository in {}", gitpath_str);
+        } else {
+            println!("Initialized empty Git repository in {}", gitpath_str);
+        }
     }
     core::write_if_new(&head_path, b"ref: refs/heads/master\n")?;
     core::write_if_new(&gitpath.join("config"), config::initial_config().as_bytes())?;
