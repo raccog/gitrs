@@ -1,12 +1,8 @@
-extern crate clap;
-
-use std::error::Error;
-
 use clap::{App, Arg, SubCommand};
 
 use gitrs;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     // Get command line arguments.
     let matches = App::new("gitrs")
         .version(env!("CARGO_PKG_VERSION"))
@@ -23,13 +19,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         .get_matches();
 
     // Run subcommand from args.
-    if let Err(err) = match matches.subcommand() {
+    let result = match matches.subcommand() {
         ("init", _) => gitrs::init(&matches),
         ("hash-object", _) => gitrs::hash_object(&matches),
         _ => Ok(()),
-    } {
-        return Err(Box::new(err));
-    }
+    };
 
-    Ok(())
+    if let Err(error) = result {
+        eprintln!("{}", error);
+    }
 }

@@ -9,11 +9,7 @@ pub type GitResult<T> = Result<T, GitError>;
 pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitResult<T> {
     match result {
         Ok(ok) => Ok(ok),
-        Err(error) => {
-            let giterror = GitError::IOError(error, path.as_ref().to_path_buf());
-            eprintln!("{}", &giterror);
-            Err(giterror)
-        }
+        Err(error) => Err(GitError::IOError(error, path.as_ref().to_path_buf())),
     }
 }
 
