@@ -31,7 +31,10 @@ impl GitRepo {
             Ok(dir) => dir,
             Err(VarError::NotPresent) => ".git".to_string(),
             Err(VarError::NotUnicode(dir)) => {
-                return Err(GitError::VarInvalidUnicode(OsString::from("GIT_DIR"), dir));
+                return Err(GitError::VarInvalidUnicode {
+                    var: OsString::from("GIT_DIR"),
+                    data: dir,
+                });
             }
         };
 
