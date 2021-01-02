@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .default_value("."),
             ),
         )
-        //.subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
+        .subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
         .get_matches();
 
     let repo = GitRepo::from_args(&args)?;
@@ -28,6 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Run subcommand from args.
     if let Err(err) = match args.subcommand() {
         ("init", _) => gitrs::init(&repo),
+        ("hash-object", _) => gitrs::hash_object(&args),
         _ => Ok(()),
     } {
         return Err(Box::new(err));

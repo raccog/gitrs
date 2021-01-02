@@ -1,5 +1,5 @@
 use std::fs::{self, OpenOptions};
-use std::io::{self, ErrorKind, Write};
+use std::io::{self, ErrorKind, Read, Write};
 use std::path::Path;
 
 use crate::core::{self, GitResult};
@@ -24,6 +24,8 @@ pub fn create_dir_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
 /// Shorthand for creating a new directory and recursively creating it's parents if they don't
 /// exist.
 ///
+/// Converts [io::Error] into [GitError].
+///
 /// Returns [Ok] if the directory already exists.
 ///
 /// # Errors
@@ -37,6 +39,13 @@ pub fn create_dir_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
 #[inline]
 pub fn create_dir_all_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
     core::to_git_result(consume_already_exists(fs::create_dir_all(path)))
+}
+
+pub fn read_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
+    let mut file = core::to_git_result(OpenOptions::new().read(true).open(path))?;
+    let mut data = String::new();
+    core::to_git_result(file.read_to_string(&mut data))?;
+    Ok(data)
 }
 
 /// Shorthand for creating a new file and writing a buffer into it.

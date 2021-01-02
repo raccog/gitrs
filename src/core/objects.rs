@@ -2,6 +2,8 @@ use std::env::{self, VarError};
 use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
+use hex;
+use sha1::{Digest, Sha1};
 
 use crate::core::{GitError, GitResult};
 
@@ -72,23 +74,22 @@ impl GitRepo {
     }
 }
 
-/// Used to serialize and deserialize different types of git objects.
+/// A data interface used to serialize and deserialize different types of git objects.
 pub trait GitObject {
-    /// Deserializes the data from an object file.
-    ///
-    /// The file should be stripped of its header before being deserialized.
-    fn deserialize(data: &str) -> Self;
+    fn data(&self) -> &str;
 
     /// Returns the type of object.
     fn fmt(&self) -> &'static str;
 
-    /// Returns the serialized data of this object.
-    ///
-    /// A header needs to be added to this data before it's writtent to a file.
-    fn serialize(&self) -> &str;
+    fn new(data: &str) -> Self;
+
+    fn serialize(&self) -> String;
 
     /// Returns the size of this object.
     fn size(&self) -> usize;
+
+    /// Returns the Sha1 hash for this object.
+    fn to_sha1(&self) -> String;
 }
 
 /// A git blob object.
@@ -98,22 +99,30 @@ pub struct GitBlob {
 }
 
 impl GitObject for GitBlob {
-    fn deserialize(data: &str) -> Self {
-        Self {
-            data: data.to_string(),
-            size: data.len(),
-        }
+    fn data(&self) -> &str {
+        self.data.as_str()
     }
 
     fn fmt(&self) -> &'static str {
         "blob"
     }
 
-    fn serialize(&self) -> &str {
-        self.data.as_str()
+    fn new(data: &str) -> Self {
+        Self {
+            data: data.to_string(),
+            size: data.len(),
+        }
+    }
+
+    fn serialize(&self) -> String {
+        format!("{} {}\x00{}", self.fmt(), self.data.len(), self.data)
     }
 
     fn size(&self) -> usize {
         self.size
+    }
+
+    fn to_sha1(&self) -> String {
+        hex::encode(Sha1::digest(self.serialize().as_bytes()))
     }
 }
