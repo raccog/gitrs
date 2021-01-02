@@ -24,7 +24,7 @@ impl GitRepo {
     ///
     /// * GIT_DIR environment variable is invalid unicode
     /// * Arguments contain a path to an invalid directory
-    pub fn from_args(args: &ArgMatches) -> GitResult<GitRepo> {
+    pub fn from_args(matches: &ArgMatches) -> GitResult<GitRepo> {
         // Get GIT_DIR environment variable
         let gitpath = match env::var("GIT_DIR") {
             Ok(dir) => dir,
@@ -38,7 +38,7 @@ impl GitRepo {
 
         // Get worktree from 'git init' args.
         let worktree = ".";
-        let worktree = if let Some(sub_m) = args.subcommand_matches("init") {
+        let worktree = if let Some(sub_m) = matches.subcommand_matches("init") {
             if let Some(dir) = sub_m.value_of("directory") {
                 dir
             } else {

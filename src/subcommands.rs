@@ -1,3 +1,5 @@
+use clap::ArgMatches;
+
 use crate::core::subcommand_functions;
 use crate::core::{GitRepo, GitResult};
 
@@ -17,8 +19,8 @@ use crate::core::{GitRepo, GitResult};
 /// system, exceeded disk quota, too many open files, too long filename, too many symbolic links
 /// in the specified path (Unix-like systems only), etc.
 #[inline]
-pub fn init(repo: &GitRepo) -> GitResult<()> {
-    subcommand_functions::init(repo)
+pub fn init(matches: &ArgMatches) -> GitResult<()> {
+    subcommand_functions::init(&GitRepo::from_args(&matches)?)
 }
 
 pub mod hash_object {
@@ -29,15 +31,16 @@ pub mod hash_object {
     use crate::core::subcommand_functions;
     use crate::core::{self, GitResult};
 
-    pub fn run(args: &ArgMatches) -> GitResult<()> {
-        let hash = from_args(args)?;
+    pub fn run(matches: &ArgMatches) -> GitResult<()> {
+        let hash = from_args(matches)?;
         println!("{}", hash);
         Ok(())
     }
 
-    fn from_args(args: &ArgMatches) -> GitResult<String> {
+    fn from_args(matches: &ArgMatches) -> GitResult<String> {
         from_file(
-            args.subcommand_matches("hash-object")
+            matches
+                .subcommand_matches("hash-object")
                 .unwrap()
                 .value_of("file")
                 .unwrap(),

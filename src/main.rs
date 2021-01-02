@@ -4,11 +4,11 @@ use std::error::Error;
 
 use clap::{App, Arg, SubCommand};
 
-use gitrs::{self, GitRepo};
+use gitrs;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Get command line arguments.
-    let args = App::new("gitrs")
+    let matches = App::new("gitrs")
         .version("0.1.0")
         .author("Ryan Cohen <rcohenprogramming@gmail.com>")
         .about("A rust implementation of some git features.")
@@ -22,12 +22,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
         .get_matches();
 
-    let repo = GitRepo::from_args(&args)?;
-
     // Run subcommand from args.
-    if let Err(err) = match args.subcommand() {
-        ("init", _) => gitrs::init(&repo),
-        ("hash-object", _) => gitrs::hash_object(&args),
+    if let Err(err) = match matches.subcommand() {
+        ("init", _) => gitrs::init(&matches),
+        ("hash-object", _) => gitrs::hash_object(&matches),
         _ => Ok(()),
     } {
         return Err(Box::new(err));
