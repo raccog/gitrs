@@ -9,7 +9,7 @@ use gitrs;
 fn main() -> Result<(), Box<dyn Error>> {
     // Get command line arguments.
     let matches = App::new("gitrs")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Ryan Cohen <rcohenprogramming@gmail.com>")
         .about("A rust implementation of some git features.")
         .subcommand(

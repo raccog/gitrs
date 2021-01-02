@@ -1,4 +1,5 @@
 use std::env::{self, VarError};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
@@ -30,7 +31,7 @@ impl GitRepo {
             Ok(dir) => dir,
             Err(VarError::NotPresent) => ".git".to_string(),
             Err(VarError::NotUnicode(dir)) => {
-                return Err(GitError::GitDirInvalidUnicode(dir));
+                return Err(GitError::VarInvalidUnicode(OsString::from("GIT_DIR"), dir));
             }
         };
 
@@ -72,13 +73,16 @@ impl GitRepo {
 
 /// A data interface used to serialize and deserialize different types of git objects.
 pub trait GitObject {
+    /// Returns the data contained in this object without the header.
     fn data(&self) -> &str;
 
     /// Returns the type of object.
     fn fmt(&self) -> &'static str;
 
-    fn new(data: &str) -> Self;
+    /// Returns an interface to the object created from data (without the header).
+    fn from_data(data: &str) -> Self;
 
+    /// Returns the data contained in this object including the header.
     fn serialize(&self) -> String;
 
     /// Returns the size of this object.
@@ -103,7 +107,7 @@ impl GitObject for GitBlob {
         "blob"
     }
 
-    fn new(data: &str) -> Self {
+    fn from_data(data: &str) -> Self {
         Self {
             data: data.to_string(),
             size: data.len(),
@@ -111,7 +115,7 @@ impl GitObject for GitBlob {
     }
 
     fn serialize(&self) -> String {
-        format!("{} {}\x00{}", self.fmt(), self.data.len(), self.data)
+        format!("{} {}\x00{}", self.fmt(), self.size, self.data)
     }
 
     fn size(&self) -> usize {
