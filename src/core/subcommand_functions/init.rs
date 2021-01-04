@@ -10,7 +10,9 @@ use crate::core::{self, GitRepo, GitResult};
 pub fn init(repo: &GitRepo, quiet: bool) -> GitResult<()> {
     let gitpath = repo.gitpath();
     // create directories
-    core::create_dir_all_if_new(repo.worktree())?;
+    if let Some(worktree) = repo.worktree() {
+        core::create_dir_all_if_new(worktree)?;
+    }
     core::create_dir_if_new(&gitpath)?;
     core::create_dir_if_new(&gitpath.join("hooks"))?;
     core::create_dir_if_new(&gitpath.join("info"))?;

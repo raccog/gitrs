@@ -14,13 +14,14 @@ use crate::core::{self, GitError, GitResult};
 /// A container for all information about a git repository.
 #[derive(Debug)]
 pub struct GitRepo {
-    worktree: PathBuf,
+    worktree: Option<PathBuf>,
     gitpath: PathBuf,
 }
 
 impl GitRepo {
     /// Creates a container from existing info about the repository.
     pub fn new(worktree: PathBuf, gitpath: PathBuf) -> Self {
+        let worktree = Some(worktree);
         Self { worktree, gitpath }
     }
     /// Returns the current git repository from command line arguments.
@@ -73,8 +74,8 @@ impl GitRepo {
     }
 
     /// Returns a [Path] to the worktree directory of this repository.
-    pub fn worktree(&self) -> &Path {
-        self.worktree.as_path()
+    pub fn worktree(&self) -> Option<&Path> {
+        self.worktree.as_ref().map(|p| p.as_path())
     }
 }
 
