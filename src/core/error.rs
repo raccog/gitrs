@@ -6,10 +6,14 @@ use std::path::{Path, PathBuf};
 
 pub type GitResult<T> = Result<T, GitError>;
 
+/// Maps a [io::Result] to a [GitResult] and maps any [io::Error]s into [GitError]s.
 pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitResult<T> {
     match result {
         Ok(ok) => Ok(ok),
-        Err(error) => Err(GitError::IOError(error, path.as_ref().to_path_buf())),
+        Err(error) => {
+            let path = path.as_ref().to_path_buf();
+            Err(GitError::IOError { error, path })
+        }
     }
 }
 
@@ -17,20 +21,22 @@ pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitRe
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum GitError {
-    VarInvalidUnicode(OsString, OsString),
-    IOError(io::Error, PathBuf),
+    /// An environment variable that was read contains an invalid UTF-8 sequence.
+    VarInvalidUnicode { var: OsString, data: OsString },
+    /// Any error coming from [io::Error].
+    IOError { error: io::Error, path: PathBuf },
 }
 
 impl Display for GitError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self {
-            GitError::VarInvalidUnicode(var, data) => write!(
+            GitError::VarInvalidUnicode { var, data } => write!(
                 f,
                 "Environment variable {}: {} is an invalid byte sequence and cannot be read.",
                 var.to_str().unwrap(),
                 data.to_string_lossy()
             ),
-            GitError::IOError(error, path) => {
+            GitError::IOError { error, path } => {
                 // TODO: Make path absolute for console output without using fs::canonicalize.
                 let path = path.to_str().unwrap();
                 let msg = match error.kind() {
@@ -106,7 +112,7 @@ impl Display for GitError {
 impl Error for GitError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match &self {
-            GitError::IOError(error, _) => Some(error),
+            GitError::IOError { error, path: _ } => Some(error),
             _ => None,
         }
     }

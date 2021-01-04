@@ -1,37 +1,45 @@
 use std::env::{self, VarError};
 use std::ffi::OsString;
+use std::fs::File;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use clap::ArgMatches;
+use flate2::read::ZlibDecoder;
 use hex;
 use sha1::{Digest, Sha1};
 
-use crate::core::{GitError, GitResult};
+use crate::core::{self, GitError, GitResult};
 
 /// A container for all information about a git repository.
+#[derive(Debug)]
 pub struct GitRepo {
-    worktree: PathBuf,
+    worktree: Option<PathBuf>,
     gitpath: PathBuf,
 }
 
 impl GitRepo {
     /// Creates a container from existing info about the repository.
     pub fn new(worktree: PathBuf, gitpath: PathBuf) -> Self {
+        let worktree = Some(worktree);
         Self { worktree, gitpath }
     }
     /// Returns the current git repository from command line arguments.
     ///
     /// # Errors
     ///
-    /// * GIT_DIR environment variable is invalid unicode
-    /// * Arguments contain a path to an invalid directory
+    /// * [GitError::VarInvalidUnicode]: GIT_DIR environment variable is invalid unicode
+    /// * [GitError::IOError]: Arguments contain a path to an invalid directory
     pub fn from_args(matches: &ArgMatches) -> GitResult<GitRepo> {
         // Get GIT_DIR environment variable
         let gitpath = match env::var("GIT_DIR") {
             Ok(dir) => dir,
             Err(VarError::NotPresent) => ".git".to_string(),
             Err(VarError::NotUnicode(dir)) => {
-                return Err(GitError::VarInvalidUnicode(OsString::from("GIT_DIR"), dir));
+                return Err(GitError::VarInvalidUnicode {
+                    var: OsString::from("GIT_DIR"),
+                    data: dir,
+                });
             }
         };
 
@@ -66,8 +74,8 @@ impl GitRepo {
     }
 
     /// Returns a [Path] to the worktree directory of this repository.
-    pub fn worktree(&self) -> &Path {
-        self.worktree.as_path()
+    pub fn worktree(&self) -> Option<&Path> {
+        self.worktree.as_ref().map(|p| p.as_path())
     }
 }
 
@@ -79,8 +87,17 @@ pub trait GitObject {
     /// Returns the type of object.
     fn fmt(&self) -> &'static str;
 
-    /// Returns an interface to the object created from data (without the header).
+    /// Returns an object created from data (without the header).
     fn from_data(data: &str) -> Self;
+
+    /// Returns an object read from an object file.
+    ///
+    /// # Errors
+    ///
+    /// Can return errors obtained when reading a file.
+    fn from_object_file<P: AsRef<Path>>(path: P) -> GitResult<Self>
+    where
+        Self: Sized;
 
     /// Returns the data contained in this object including the header.
     fn serialize(&self) -> String;
@@ -93,6 +110,7 @@ pub trait GitObject {
 }
 
 /// A git blob object.
+#[derive(Debug)]
 pub struct GitBlob {
     data: String,
     size: usize,
@@ -112,6 +130,22 @@ impl GitObject for GitBlob {
             data: data.to_string(),
             size: data.len(),
         }
+    }
+
+    fn from_object_file<P: AsRef<Path>>(path: P) -> GitResult<Self> {
+        let mut data = String::new();
+        ZlibDecoder::new(core::to_git_result(File::open(&path), path)?)
+            .read_to_string(&mut data)
+            .unwrap();
+
+        // Find delimiters
+        let d1 = data.find(' ').unwrap();
+        let d2 = data[d1 + 1..].find("\x00").unwrap();
+
+        // Remove header from data
+        let data = data[d2 + 1..].to_string();
+
+        Ok(GitBlob::from_data(&data))
     }
 
     fn serialize(&self) -> String {

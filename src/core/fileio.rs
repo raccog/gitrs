@@ -41,7 +41,13 @@ pub fn create_dir_all_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
     core::to_git_result(consume_already_exists(fs::create_dir_all(&path)), path)
 }
 
+/// Shorthand for reading data from a file.
+///
+/// # Errors
+///
+/// This functions returns some errors from [OpenOptions::open] wrapped in a [GitError::IOError].
 pub fn read_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
+    // TODO: Return &[u8] instead of String.
     let mut file = core::to_git_result(OpenOptions::new().read(true).open(&path), &path)?;
     let mut data = String::new();
     core::to_git_result(file.read_to_string(&mut data), path)?;

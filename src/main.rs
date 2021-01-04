@@ -9,11 +9,20 @@ fn main() {
         .author("Ryan Cohen <rcohenprogramming@gmail.com>")
         .about("A rust implementation of some git features.")
         .subcommand(
-            SubCommand::with_name("init").arg(
-                Arg::with_name("directory")
-                    .help("Sets the directory to initialize a repository in.")
-                    .index(1),
-            ),
+            SubCommand::with_name("init")
+                .arg(
+                    Arg::with_name("directory")
+                        .help("Sets the directory to initialize a repository in.")
+                        .index(1),
+                )
+                .arg(
+                    Arg::with_name("quiet")
+                        .help("Only print error and warning messages; all other output will be suppressed.")
+                        .short("q")
+                        .long("quiet")
+                        .takes_value(false),
+                )
+                .version("0.0.1")
         )
         .subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
         .get_matches();

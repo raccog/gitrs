@@ -20,7 +20,13 @@ use crate::core::{GitRepo, GitResult};
 /// in the specified path (Unix-like systems only), etc.
 #[inline]
 pub fn init(matches: &ArgMatches) -> GitResult<()> {
-    subcommand_functions::init(&GitRepo::from_args(&matches)?)
+    assert_eq!(matches.subcommand_name(), Some("init"));
+
+    let quiet = matches
+        .subcommand_matches("init")
+        .unwrap()
+        .is_present("quiet");
+    subcommand_functions::init(&GitRepo::from_args(&matches)?, quiet)
 }
 
 pub mod hash_object {
