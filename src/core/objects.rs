@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use clap::ArgMatches;
 use flate2::read::ZlibDecoder;
@@ -88,7 +89,9 @@ pub trait GitObject {
     fn fmt(&self) -> &'static str;
 
     /// Returns an object created from data (without the header).
-    fn from_data(data: &str) -> Self;
+    fn from_data(data: &str) -> Self
+    where
+        Self: Sized;
 
     /// Returns an object read from an object file.
     ///
@@ -109,11 +112,49 @@ pub trait GitObject {
     fn to_sha1(&self) -> String;
 }
 
+#[derive(Debug)]
+pub struct GitFileMode {
+    file_type: u8,
+    owner_mode: u8,
+    group_mode: u8,
+    other_mode: u8,
+}
+
+impl From<&str> for GitFileMode {
+    fn from(filemode: &str) -> Self {
+        assert_eq!(filemode.len(), 6);
+        let file_type = filemode[..2].parse::<u8>().unwrap();
+        let owner_mode = filemode[2..4].parse::<u8>().unwrap();
+        let group_mode = filemode
+            .chars()
+            .nth(4)
+            .unwrap()
+            .to_string()
+            .parse::<u8>()
+            .unwrap();
+        let other_mode = filemode
+            .chars()
+            .nth(5)
+            .unwrap()
+            .to_string()
+            .parse::<u8>()
+            .unwrap();
+        Self {
+            file_type,
+            owner_mode,
+            group_mode,
+            other_mode,
+        }
+    }
+}
+
 /// A git blob object.
 #[derive(Debug)]
 pub struct GitBlob {
     data: String,
     size: usize,
+    filename: Option<OsString>,
+    filemode: Option<GitFileMode>,
 }
 
 impl GitObject for GitBlob {
@@ -125,10 +166,15 @@ impl GitObject for GitBlob {
         "blob"
     }
 
-    fn from_data(data: &str) -> Self {
+    fn from_data(data: &str) -> Self
+    where
+        Self: Sized,
+    {
         Self {
             data: data.to_string(),
             size: data.len(),
+            filename: None,
+            filemode: None,
         }
     }
 
@@ -145,7 +191,12 @@ impl GitObject for GitBlob {
         // Remove header from data
         let data = data[d2 + 1..].to_string();
 
-        Ok(GitBlob::from_data(&data))
+        Ok(Self {
+            data,
+            size: data.len(),
+            filename: Some(OsString::from_str(path.as_ref().to_str().unwrap()).unwrap()),
+            filemode: Some(GitFileMode::from()),
+        })
     }
 
     fn serialize(&self) -> String {
