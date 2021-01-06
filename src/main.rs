@@ -25,6 +25,7 @@ fn main() {
                 .version("0.0.1")
         )
         .subcommand(SubCommand::with_name("hash-object").arg(Arg::with_name("file").index(1)))
+        .subcommand(SubCommand::with_name("cat-file").arg(Arg::with_name("file").index(1)))
         .get_matches();
 
     // Run subcommand from args.

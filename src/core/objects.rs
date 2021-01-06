@@ -2,6 +2,7 @@ use std::env::{self, VarError};
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Read;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -120,6 +121,22 @@ pub struct GitFileMode {
     other_mode: u8,
 }
 
+impl From<u32> for GitFileMode {
+    fn from(filemode: u32) -> Self {
+        let file_type = (filemode >> 3) as u8;
+        let owner_mode = ((filemode & 0x0F00) >> 2) as u8;
+        let group_mode = ((filemode & 0x00F0) >> 1) as u8;
+        let other_mode = (filemode & 0x000F) as u8;
+
+        Self {
+            file_type,
+            owner_mode,
+            group_mode,
+            other_mode,
+        }
+    }
+}
+
 impl From<&str> for GitFileMode {
     fn from(filemode: &str) -> Self {
         assert_eq!(filemode.len(), 6);
@@ -179,10 +196,9 @@ impl GitObject for GitBlob {
     }
 
     fn from_object_file<P: AsRef<Path>>(path: P) -> GitResult<Self> {
+        let file = core::to_git_result(File::open(&path), &path)?;
         let mut data = String::new();
-        ZlibDecoder::new(core::to_git_result(File::open(&path), path)?)
-            .read_to_string(&mut data)
-            .unwrap();
+        ZlibDecoder::new(&file).read_to_string(&mut data).unwrap();
 
         // Find delimiters
         let d1 = data.find(' ').unwrap();
@@ -191,11 +207,17 @@ impl GitObject for GitBlob {
         // Remove header from data
         let data = data[d2 + 1..].to_string();
 
+        // Read file mode
+        let mode = core::to_git_result(file.metadata(), &path)?
+            .permissions()
+            .mode();
+
+        let size = data.len();
         Ok(Self {
             data,
-            size: data.len(),
+            size,
             filename: Some(OsString::from_str(path.as_ref().to_str().unwrap()).unwrap()),
-            filemode: Some(GitFileMode::from()),
+            filemode: Some(GitFileMode::from(mode)),
         })
     }
 
