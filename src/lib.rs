@@ -1,5 +1,6 @@
 mod config;
 mod core;
+pub mod subcommand_functions;
 mod subcommands;
 
 pub use crate::core::{GitBlob, GitError, GitFileMode, GitObject, GitRepo, GitResult};

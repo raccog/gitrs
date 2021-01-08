@@ -1,4 +1,4 @@
-use crate::core::{GitBlob, GitObject, GitRepo};
+use crate::core::{GitBlob, GitObject /*, GitRepo*/};
 
 pub fn hash_object(data: &str) -> String {
     let blob = GitBlob::from_data(data);
