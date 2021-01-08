@@ -1,4 +1,3 @@
-
 use super::*;
 use std::error::Error;
 
@@ -8,7 +7,7 @@ fn test_file_mode() -> Result<(), Box<dyn Error>> {
     use std::os::unix::fs::PermissionsExt;
 
     let path = "/tmp/test.txt";
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
         .create_new(true)
         .write(true)
         .open(&path)?;

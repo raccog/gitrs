@@ -1,6 +1,8 @@
 mod blob;
 mod file_mode;
 mod repo;
+#[cfg(test)]
+mod tests;
 
 use std::path::Path;
 
