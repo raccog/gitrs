@@ -7,7 +7,7 @@ use crate::{utils, GitRepo, GitResult};
 ///
 /// This function can return all errors that come from [fs::create_dir], [fs::create_dir_all], and
 /// [fileio::write_if_new].
-pub fn init_helper(repo: &GitRepo, quiet: bool) -> GitResult<()> {
+pub fn init(repo: &GitRepo, quiet: bool) -> GitResult<()> {
     let gitpath = repo.gitpath();
     // create directories
     if let Some(worktree) = repo.worktree() {
