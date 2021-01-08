@@ -8,7 +8,7 @@ use std::str::FromStr;
 use flate2::read::ZlibDecoder;
 use sha1::{Digest, Sha1};
 
-use crate::{core, GitFileMode, GitObject, GitResult};
+use crate::{self as gitrs, GitFileMode, GitObject, GitResult};
 
 /// A git blob object.
 #[derive(Debug)]
@@ -41,7 +41,7 @@ impl GitObject for GitBlob {
     }
 
     fn from_object_file<P: AsRef<Path>>(path: P) -> GitResult<Self> {
-        let file = core::to_git_result(File::open(&path), &path)?;
+        let file = gitrs::to_git_result(File::open(&path), &path)?;
         let mut data = String::new();
         ZlibDecoder::new(&file).read_to_string(&mut data).unwrap();
 
@@ -53,7 +53,7 @@ impl GitObject for GitBlob {
         let data = data[d2 + 1..].to_string();
 
         // Read file mode
-        let mode = core::to_git_result(file.metadata(), &path)?
+        let mode = gitrs::to_git_result(file.metadata(), &path)?
             .permissions()
             .mode();
 

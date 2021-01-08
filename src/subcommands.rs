@@ -1,7 +1,7 @@
 use clap::ArgMatches;
 
-use crate::core::{GitRepo, GitResult};
 use crate::subcommand_functions;
+use crate::{GitRepo, GitResult};
 
 /// Initializes a git repository.
 ///
@@ -34,8 +34,8 @@ pub mod hash_object {
 
     use clap::ArgMatches;
 
-    use crate::core::{self, GitResult};
     use crate::subcommand_functions;
+    use crate::{core, GitResult};
 
     pub fn run(matches: &ArgMatches) -> GitResult<()> {
         let hash = from_args(matches)?;

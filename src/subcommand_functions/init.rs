@@ -1,5 +1,5 @@
 use crate::config;
-use crate::core::{self, GitRepo, GitResult};
+use crate::{core, GitRepo, GitResult};
 
 /// Initializes a git repository.
 ///

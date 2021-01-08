@@ -2,7 +2,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, ErrorKind, Read, Write};
 use std::path::Path;
 
-use crate::core::{self, GitResult};
+use crate::{self as gitrs, GitResult};
 
 /// Shorthand for creating a new directory.
 ///
@@ -18,7 +18,7 @@ use crate::core::{self, GitResult};
 /// * Other: One of the directory components of the specified directory path was not, in fact, a directory.
 #[inline]
 pub fn create_dir_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
-    core::to_git_result(consume_already_exists(fs::create_dir(&path)), path)
+    gitrs::to_git_result(consume_already_exists(fs::create_dir(&path)), path)
 }
 
 /// Shorthand for creating a new directory and recursively creating it's parents if they don't
@@ -38,7 +38,7 @@ pub fn create_dir_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
 /// * Other: One of the directory components of the specified directory path was not, in fact, a directory.
 #[inline]
 pub fn create_dir_all_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
-    core::to_git_result(consume_already_exists(fs::create_dir_all(&path)), path)
+    gitrs::to_git_result(consume_already_exists(fs::create_dir_all(&path)), path)
 }
 
 /// Shorthand for reading data from a file.
@@ -48,9 +48,9 @@ pub fn create_dir_all_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
 /// This functions returns some errors from [OpenOptions::open] wrapped in a [GitError::IOError].
 pub fn read_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
     // TODO: Return &[u8] instead of String.
-    let mut file = core::to_git_result(OpenOptions::new().read(true).open(&path), &path)?;
+    let mut file = gitrs::to_git_result(OpenOptions::new().read(true).open(&path), &path)?;
     let mut data = String::new();
-    core::to_git_result(file.read_to_string(&mut data), path)?;
+    gitrs::to_git_result(file.read_to_string(&mut data), path)?;
     Ok(data)
 }
 
@@ -72,7 +72,7 @@ pub fn read_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
 /// in the specified path (Unix-like systems only), etc.
 #[inline]
 pub fn write_if_new<P: AsRef<Path>>(path: P, buf: &[u8]) -> GitResult<()> {
-    core::to_git_result(consume_already_exists(write_new(&path, buf)), path)
+    gitrs::to_git_result(consume_already_exists(write_new(&path, buf)), path)
 }
 
 fn consume_already_exists(result: io::Result<()>) -> io::Result<()> {
