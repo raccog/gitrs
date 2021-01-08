@@ -1,10 +1,32 @@
 /// A representation of file permissions.
 #[derive(Debug)]
 pub struct GitFileMode {
-    pub file_type: u8,
-    pub owner_mode: u8,
-    pub group_mode: u8,
-    pub other_mode: u8,
+    file_type: u8,
+    owner_mode: u8,
+    group_mode: u8,
+    other_mode: u8,
+}
+
+impl GitFileMode {
+    /// The file type permission byte.
+    pub fn file_type(&self) -> u8 {
+        self.file_type
+    }
+
+    /// The owner mode permission byte.
+    pub fn owner_mode(&self) -> u8 {
+        self.owner_mode
+    }
+
+    /// The group mode permission byte.
+    pub fn group_mode(&self) -> u8 {
+        self.group_mode
+    }
+
+    /// The other mode permission byte.
+    pub fn other_mode(&self) -> u8 {
+        self.other_mode
+    }
 }
 
 impl From<u32> for GitFileMode {
