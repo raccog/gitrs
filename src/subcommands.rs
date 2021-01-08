@@ -35,7 +35,7 @@ pub mod hash_object {
     use clap::ArgMatches;
 
     use crate::subcommand_functions;
-    use crate::{core, GitResult};
+    use crate::{utils, GitResult};
 
     pub fn run(matches: &ArgMatches) -> GitResult<()> {
         let hash = from_args(matches)?;
@@ -59,7 +59,7 @@ pub mod hash_object {
     }
 
     fn from_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
-        let data = core::read_file(path)?;
+        let data = utils::read_file(path)?;
         Ok(from_data(&data))
     }
 }
