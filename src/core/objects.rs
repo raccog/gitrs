@@ -115,17 +115,17 @@ pub trait GitObject {
 
 #[derive(Debug)]
 pub struct GitFileMode {
-    file_type: u8,
-    owner_mode: u8,
-    group_mode: u8,
-    other_mode: u8,
+    pub file_type: u8,
+    pub owner_mode: u8,
+    pub group_mode: u8,
+    pub other_mode: u8,
 }
 
 impl From<u32> for GitFileMode {
     fn from(filemode: u32) -> Self {
-        let file_type = (filemode >> 3) as u8;
-        let owner_mode = ((filemode & 0x0F00) >> 2) as u8;
-        let group_mode = ((filemode & 0x00F0) >> 1) as u8;
+        let file_type = (filemode >> 14) as u8;
+        let owner_mode = ((filemode & 0x0F00) >> 5) as u8;
+        let group_mode = ((filemode & 0x00F0) >> 2) as u8;
         let other_mode = (filemode & 0x000F) as u8;
 
         Self {
@@ -134,6 +134,18 @@ impl From<u32> for GitFileMode {
             group_mode,
             other_mode,
         }
+    }
+}
+
+impl Into<u32> for GitFileMode {
+    fn into(self) -> u32 {
+        let (t, own, grp, oth) = (
+            self.file_type as u32,
+            self.owner_mode as u32,
+            self.group_mode as u32,
+            self.other_mode as u32,
+        );
+        (t << 14) | (own << 5) | (grp << 2) | oth
     }
 }
 
@@ -231,5 +243,32 @@ impl GitObject for GitBlob {
 
     fn to_sha1(&self) -> String {
         hex::encode(Sha1::digest(self.serialize().as_bytes()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_file_mode() -> Result<(), Box<dyn Error>> {
+        use std::fs::{self, OpenOptions, Permissions};
+        use std::os::unix::fs::PermissionsExt;
+
+        let path = "/tmp/test.txt";
+        let mut file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&path)?;
+        file.set_permissions(Permissions::from_mode(0o644))?;
+
+        let real_mode = file.metadata()?.permissions().mode();
+        let mode = GitFileMode::from(real_mode);
+        fs::remove_file(path)?;
+
+        assert_eq!(real_mode, mode.into());
+
+        Ok(())
     }
 }

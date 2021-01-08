@@ -5,4 +5,4 @@ pub fn hash_object(data: &str) -> String {
     blob.to_sha1()
 }
 
-pub fn cat_file(repo: &GitRepo, object: &str) -> String {}
+//pub fn cat_file(repo: &GitRepo, object: &str) -> String {}
