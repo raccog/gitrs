@@ -45,7 +45,7 @@ pub fn create_dir_all_if_new<P: AsRef<Path>>(path: P) -> GitResult<()> {
 ///
 /// # Errors
 ///
-/// This functions returns some errors from [OpenOptions::open] wrapped in a [GitError::IOError].
+/// This functions returns some [io::Error]s from [OpenOptions::open] wrapped in a [GitError::IOError].
 pub fn read_file<P: AsRef<Path>>(path: P) -> GitResult<String> {
     // TODO: Return &[u8] instead of String.
     let mut file = gitrs::to_git_result(OpenOptions::new().read(true).open(&path), &path)?;
