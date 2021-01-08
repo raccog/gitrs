@@ -1,3 +1,7 @@
+//! # Gitrs
+//!
+//! `gitrs` is a re-implementation of some git features in native rust with no [libgit2](https://libgit2.org)  bindings.
+
 mod config;
 mod error;
 mod objects;

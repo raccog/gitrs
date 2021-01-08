@@ -19,6 +19,7 @@ impl GitRepo {
         let worktree = Some(worktree);
         Self { worktree, gitpath }
     }
+
     /// Returns the current git repository from command line arguments.
     ///
     /// # Errors

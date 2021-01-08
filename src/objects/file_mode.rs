@@ -1,4 +1,4 @@
-
+/// A representation of file permissions.
 #[derive(Debug)]
 pub struct GitFileMode {
     pub file_type: u8,

@@ -1,5 +1,3 @@
-pub use hash_object_utils::run as hash_object;
-
 mod init_helper;
 mod plumbing;
 
@@ -34,7 +32,14 @@ pub fn init(matches: &ArgMatches) -> GitResult<()> {
     init_helper(&GitRepo::from_args(&matches)?, quiet)
 }
 
-pub mod hash_object_utils {
+/// Computes and prints the Sha1 hash of an input from command line args.
+pub fn hash_object(matches: &ArgMatches) -> GitResult<()> {
+    let hash = hash_object_utils::from_args(matches)?;
+    println!("{}", hash);
+    Ok(())
+}
+
+mod hash_object_utils {
     use std::path::Path;
 
     use clap::ArgMatches;
@@ -42,13 +47,7 @@ pub mod hash_object_utils {
     use super::plumbing::hash_object as hash_object_helper;
     use crate::{utils, GitResult};
 
-    pub fn run(matches: &ArgMatches) -> GitResult<()> {
-        let hash = from_args(matches)?;
-        println!("{}", hash);
-        Ok(())
-    }
-
-    fn from_args(matches: &ArgMatches) -> GitResult<String> {
+    pub fn from_args(matches: &ArgMatches) -> GitResult<String> {
         from_file(
             matches
                 .subcommand_matches("hash-object")

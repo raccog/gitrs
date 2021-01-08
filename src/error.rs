@@ -4,9 +4,10 @@ use std::fmt::{self, Display, Formatter};
 use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 
+/// A result that could contain a [GitError].
 pub type GitResult<T> = Result<T, GitError>;
 
-/// Maps a [io::Result] to a [GitResult] and maps any [io::Error]s into [GitError]s.
+/// Maps an [io::Result] to a [GitResult] and maps any [io::Error]s into [GitError]s.
 pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitResult<T> {
     match result {
         Ok(ok) => Ok(ok),
@@ -18,6 +19,8 @@ pub fn to_git_result<T, P: AsRef<Path>>(result: io::Result<T>, path: P) -> GitRe
 }
 
 /// All possible errors that can arise while using git.
+///
+/// Every git subcommand function returns a [GitResult] possibly containing this error.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum GitError {
