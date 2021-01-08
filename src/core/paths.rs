@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::core::GitRepo;
+use crate::GitRepo;
 
 /// Returns the path to an object from it's Sha1 hash.
 #[inline]
