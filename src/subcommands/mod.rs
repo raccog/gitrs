@@ -1,4 +1,4 @@
-pub use hash_object::run as hash_object;
+pub use hash_object_utils::run as hash_object;
 
 mod init_helper;
 mod plumbing;
@@ -34,7 +34,7 @@ pub fn init(matches: &ArgMatches) -> GitResult<()> {
     init_helper(&GitRepo::from_args(&matches)?, quiet)
 }
 
-pub mod hash_object {
+pub mod hash_object_utils {
     use std::path::Path;
 
     use clap::ArgMatches;
