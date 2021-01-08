@@ -71,6 +71,6 @@ impl GitRepo {
 
     /// Returns a [Path] to the worktree directory of this repository.
     pub fn worktree(&self) -> Option<&Path> {
-        self.worktree.as_ref().map(|p| p.as_path())
+        self.worktree.as_deref()
     }
 }

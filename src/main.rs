@@ -1,7 +1,5 @@
 use clap::{App, Arg, SubCommand};
 
-use gitrs;
-
 fn main() {
     // Get command line arguments.
     let matches = App::new("gitrs")

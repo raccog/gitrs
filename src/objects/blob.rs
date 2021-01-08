@@ -47,7 +47,7 @@ impl GitObject for GitBlob {
 
         // Find delimiters
         let d1 = data.find(' ').unwrap();
-        let d2 = data[d1 + 1..].find("\x00").unwrap();
+        let d2 = data[d1 + 1..].find('\x00').unwrap();
 
         // Remove header from data
         let data = data[d2 + 1..].to_string();
