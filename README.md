@@ -1,5 +1,5 @@
 # gitrs
-An implementation of some git features in rust.
+Tinkering with some git features in rust to learn the internals.
 
 ## Current Features
 
